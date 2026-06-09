@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KYC-Shield | AI-Powered Identity Verification & Fraud Detection</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── RESET & TOKENS ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #060b14;
+      --surface:   #0c1525;
+      --card:      #101d30;
+      --border:    #1a2d48;
+      --cyan:      #00d4ff;
+      --cyan-dim:  #00d4ff33;
+      --green:     #00ff9d;
+      --green-dim: #00ff9d22;
+      --amber:     #ffb800;
+      --amber-dim: #ffb80022;
+      --red:       #ff4466;
+      --red-dim:   #ff446622;
+      --purple:    #a855f7;
+      --txt:       #d0e4f5;
+      --txt-muted: #5a7899;
+      --font-head: 'Syne', sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-body: 'Inter', sans-serif;
+      --radius:    10px;
+      --glow-cyan: 0 0 20px #00d4ff44, 0 0 40px #00d4ff22;
+      --glow-green:0 0 20px #00ff9d44;
+      --glow-red:  0 0 20px #ff446644;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── ANIMATED BACKGROUND GRID ─────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, #00d4ff08 0%, transparent 70%),
+                  radial-gradient(ellipse 40% 40% at 0% 100%, #a855f708 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ── LAYOUT HELPERS ───────────────────────────────────────────── */
+    .wrap  { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+    .flex  { display: flex; align-items: center; }
+    .gap8  { gap: 8px; } .gap12 { gap: 12px; } .gap16 { gap: 16px; }
+    .mb8   { margin-bottom: 8px; }
+    .mb16  { margin-bottom: 16px; }
+    .mb24  { margin-bottom: 24px; }
+    .hidden { display: none !important; }
+
+    /* ── NAVIGATION ───────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: #060b14cc;
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 0;
+    }
+    nav .inner { display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-family: var(--font-head); font-size: 1.3rem; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+    .logo span { color: var(--cyan); }
+    .nav-links { display: flex; gap: 6px; }
+    .nav-links button {
+      background: none; border: none; color: var(--txt-muted);
+      font-family: var(--font-body); font-size: 0.82rem;
+      padding: 6px 14px; border-radius: 20px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-links button:hover,
+    .nav-links button.active {
+      background: var(--cyan-dim); color: var(--cyan);
+    }
+    .nav-badge {
+      font-family: var(--font-mono); font-size: 0.65rem;
+      background: var(--green-dim); color: var(--green);
+      padding: 3px 10px; border-radius: 20px;
+      border: 1px solid #00ff9d33;
+    }
+
+    /* ── HERO ─────────────────────────────────────────────────────── */
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono); font-size: 0.72rem;
+      color: var(--cyan); background: var(--cyan-dim);
+      border: 1px solid #00d4ff33;
+      padding: 5px 14px; border-radius: 20px;
+      margin-bottom: 28px;
+    }
+    .hero-tag .dot { width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; animation: blink 1.4s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .hero h1 {
+      font-family: var(--font-head); font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 800; line-height: 1.1;
+      letter-spacing: -1px; color: #fff;
+      margin-bottom: 18px;
+    }
+    .hero h1 span { color: var(--cyan); }
+    .hero p {
+      max-width: 560px; margin: 0 auto 36px;
+      color: var(--txt-muted); font-size: 1rem; line-height: 1.7;
+    }
+    .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--cyan); color: var(--bg);
+      font-family: var(--font-head); font-weight: 700;
+      font-size: 0.9rem; padding: 12px 28px;
+      border: none; border-radius: var(--radius);
+      cursor: pointer; transition: all 0.2s;
+      box-shadow: var(--glow-cyan);
+    }
+    .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    .btn-outline {
+      background: transparent; color: var(--txt);
+      border: 1px solid var(--border);
+      font-family: var(--font-body); font-size: 0.9rem;
+      padding: 12px 28px; border-radius: var(--radius);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-outline:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* ── STATS BAR ────────────────────────────────────────────────── */
+    .stats-bar {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; margin-bottom: 40px;
+    }
+    .stat-item {
+      background: var(--surface); padding: 20px 24px;
+      text-align: center;
+    }
+    .stat-item .val {
+      font-family: var(--font-head); font-size: 1.8rem; font-weight: 800;
+      color: var(--cyan); display: block;
+    }
+    .stat-item .lbl { font-size: 0.75rem; color: var(--txt-muted); margin-top: 4px; }
+
+    /* ── SECTION HEADER ───────────────────────────────────────────── */
+    .sec-hdr { margin-bottom: 28px; }
+    .sec-hdr h2 {
+      font-family: var(--font-head); font-size: 1.5rem; font-weight: 800;
+      color: #fff; display: flex; align-items: center; gap: 10px;
+    }
+    .sec-hdr h2 .icon { font-size: 1.1rem; }
+    .sec-hdr p { color: var(--txt-muted); font-size: 0.85rem; margin-top: 4px; }
+
+    /* ── CARD ─────────────────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .card-sm { padding: 16px 20px; }
+    .card-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 18px; padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-hdr h3 {
+      font-family: var(--font-head); font-size: 0.95rem; font-weight: 700;
+      color: #fff; display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ── TABS ─────────────────────────────────────────────────────── */
+    .tabs { display: flex; gap: 0; margin-bottom: 32px; border-bottom: 1px solid var(--border); }
+    .tab {
+      padding: 12px 22px; font-family: var(--font-head); font-weight: 600;
+      font-size: 0.85rem; color: var(--txt-muted);
+      background: none; border: none; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: all 0.2s;
+    }
+    .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+    .tab:hover:not(.active) { color: var(--txt); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── BADGE / PILL ─────────────────────────────────────────────── */
+    .pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-family: var(--font-mono); font-size: 0.68rem; font-weight: 500;
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .pill-green { background: var(--green-dim); color: var(--green); border: 1px solid #00ff9d33; }
+    .pill-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid #ffb80033; }
+    .pill-red   { background: var(--red-dim);   color: var(--red);   border: 1px solid #ff446633; }
+    .pill-cyan  { background: var(--cyan-dim);  color: var(--cyan);  border: 1px solid #00d4ff33; }
+    .pill-purple{ background: #a855f722; color: var(--purple); border: 1px solid #a855f733; }
+
+    /* ── UPLOAD ZONE ──────────────────────────────────────────────── */
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: var(--radius);
+      padding: 40px 24px; text-align: center;
+      cursor: pointer; transition: all 0.3s;
+      background: var(--surface);
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--cyan); background: var(--cyan-dim);
+    }
+    .upload-zone .icon { font-size: 2.5rem; margin-bottom: 12px; display: block; }
+    .upload-zone h4 { font-family: var(--font-head); font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .upload-zone p  { font-size: 0.8rem; color: var(--txt-muted); }
+    .upload-zone input { display: none; }
+
+    /* ── FORM FIELDS ──────────────────────────────────────────────── */
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block; font-size: 0.75rem; font-weight: 500;
+      color: var(--txt-muted); margin-bottom: 6px;
+      font-family: var(--font-mono);
+    }
+    .form-group input, .form-group select {
+      width: 100%; padding: 10px 14px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--txt); font-size: 0.9rem;
+      font-family: var(--font-body); outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--cyan);
+    }
+    .form-group select option { background: var(--surface); }
+    .form-group .err { font-size: 0.72rem; color: var(--red); margin-top: 4px; display: none; }
+    .form-group.has-error input,
+    .form-group.has-error select { border-color: var(--red); }
+    .form-group.has-error .err { display: block; }
+
+    .btn-full {
+      width: 100%; padding: 12px; font-family: var(--font-head);
+      font-weight: 700; font-size: 0.95rem;
+      background: var(--cyan); color: var(--bg);
+      border: none; border-radius: var(--radius);
+      cursor: pointer; transition: all 0.25s;
+      box-shadow: var(--glow-cyan);
+    }
+    .btn-full:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .btn-full:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── PROCESSING STEP INDICATOR ────────────────────────────────── */
+    .pipeline {
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .pipe-step {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 16px 0; position: relative;
+    }
+    .pipe-step:not(:last-child)::after {
+      content: ''; position: absolute; left: 15px; top: 44px;
+      width: 2px; height: calc(100% - 28px);
+      background: var(--border);
+    }
+    .pipe-step.done::after { background: var(--cyan); }
+    .pipe-icon {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid var(--border); background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; flex-shrink: 0; position: relative; z-index: 1;
+      transition: all 0.4s;
+    }
+    .pipe-step.done .pipe-icon {
+      border-color: var(--cyan); background: var(--cyan-dim);
+      box-shadow: var(--glow-cyan);
+    }
+    .pipe-step.active .pipe-icon {
+      border-color: var(--amber); background: var(--amber-dim);
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 #ffb80044} 50%{box-shadow:0 0 0 8px transparent} }
+    .pipe-step.error .pipe-icon {
+      border-color: var(--red); background: var(--red-dim);
+    }
+    .pipe-body { flex: 1; padding-top: 4px; }
+    .pipe-body h4 { font-size: 0.88rem; font-weight: 600; color: #fff; margin-bottom: 2px; }
+    .pipe-body p  { font-size: 0.75rem; color: var(--txt-muted); }
+    .pipe-body .prog {
+      height: 3px; background: var(--border); border-radius: 2px;
+      margin-top: 8px; overflow: hidden;
+    }
+    .pipe-body .prog-bar {
+      height: 100%; width: 0%; background: var(--cyan);
+      border-radius: 2px; transition: width 0.6s ease;
+    }
+
+    /* ── RISK SCORE METER ─────────────────────────────────────────── */
+    .risk-meter { text-align: center; padding: 16px 0; }
+    .risk-circle {
+      width: 160px; height: 160px; margin: 0 auto 20px;
+      position: relative;
+    }
+    .risk-circle svg { transform: rotate(-90deg); }
+    .risk-circle .score-txt {
+      position: absolute; inset: 0; display: flex;
+      flex-direction: column; align-items: center; justify-content: center;
+    }
+    .risk-circle .score-txt .num {
+      font-family: var(--font-head); font-size: 2.4rem; font-weight: 800;
+      color: #fff; line-height: 1;
+    }
+    .risk-circle .score-txt .lbl {
+      font-size: 0.68rem; color: var(--txt-muted);
+      font-family: var(--font-mono);
+    }
+    .risk-factors { display: flex; flex-direction: column; gap: 10px; }
+    .risk-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .risk-row span { font-size: 0.78rem; color: var(--txt-muted); white-space: nowrap; min-width: 120px; }
+    .risk-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .risk-bar .fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+    .risk-row .pct { font-family: var(--font-mono); font-size: 0.72rem; color: var(--txt); min-width: 36px; text-align: right; }
+
+    /* ── RESULT CARD ──────────────────────────────────────────────── */
+    .result-hero {
+      text-align: center; padding: 28px 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .result-icon { font-size: 3rem; margin-bottom: 10px; display: block; }
+    .result-hero h2 {
+      font-family: var(--font-head); font-size: 1.5rem; font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .result-hero p { font-size: 0.85rem; color: var(--txt-muted); }
+
+    /* ── ALERT FEED ───────────────────────────────────────────────── */
+    .alert-feed { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; }
+    .alert-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn { from{opacity:0;transform:translateX(10px)} to{opacity:1;transform:none} }
+    .alert-item.sev-high { border-left: 3px solid var(--red); }
+    .alert-item.sev-med  { border-left: 3px solid var(--amber); }
+    .alert-item.sev-low  { border-left: 3px solid var(--green); }
+    .alert-item .aico { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .alert-item .abody h4 { font-size: 0.82rem; font-weight: 600; color: #fff; margin-bottom: 2px; }
+    .alert-item .abody p  { font-size: 0.73rem; color: var(--txt-muted); }
+    .alert-item .atime {
+      margin-left: auto; font-family: var(--font-mono); font-size: 0.65rem;
+      color: var(--txt-muted); white-space: nowrap;
+    }
+
+    /* ── TRANSACTIONS TABLE ───────────────────────────────────────── */
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left; padding: 10px 14px;
+      font-family: var(--font-mono); font-size: 0.68rem;
+      color: var(--txt-muted); font-weight: 500;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody td {
+      padding: 12px 14px; font-size: 0.82rem;
+      border-bottom: 1px solid #1a2d4855;
+      vertical-align: middle;
+    }
+    tbody tr:hover td { background: var(--surface); }
+    .txn-id { font-family: var(--font-mono); font-size: 0.75rem; color: var(--cyan); }
+
+    /* ── MINI METRIC CARD ─────────────────────────────────────────── */
+    .metric-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 20px;
+    }
+    .metric-card .m-lbl { font-size: 0.72rem; color: var(--txt-muted); margin-bottom: 6px; }
+    .metric-card .m-val {
+      font-family: var(--font-head); font-size: 1.6rem; font-weight: 800;
+      color: #fff;
+    }
+    .metric-card .m-sub { font-size: 0.72rem; margin-top: 4px; }
+
+    /* ── CHART BARS ───────────────────────────────────────────────── */
+    .bar-chart { display: flex; align-items: flex-end; gap: 10px; height: 120px; padding: 0 8px; }
+    .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .bar-col .bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 1s ease; }
+    .bar-col .bar-lbl { font-size: 0.65rem; color: var(--txt-muted); font-family: var(--font-mono); }
+
+    /* ── MODULE CARDS ─────────────────────────────────────────────── */
+    .mod-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .mod-card:hover { border-color: var(--cyan); transform: translateY(-2px); }
+    .mod-card .mod-num {
+      font-family: var(--font-mono); font-size: 0.65rem;
+      color: var(--cyan); margin-bottom: 10px;
+    }
+    .mod-card h3 {
+      font-family: var(--font-head); font-size: 1rem; font-weight: 700;
+      color: #fff; margin-bottom: 8px;
+    }
+    .mod-card p { font-size: 0.78rem; color: var(--txt-muted); line-height: 1.6; margin-bottom: 14px; }
+    .mod-tasks { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+    .mod-tasks li {
+      font-size: 0.75rem; color: var(--txt-muted);
+      display: flex; align-items: flex-start; gap: 7px;
+    }
+    .mod-tasks li::before { content: '›'; color: var(--cyan); flex-shrink: 0; margin-top: 0px; }
+
+    /* ── PROGRESS TRACKER ─────────────────────────────────────────── */
+    .milestone-track { display: flex; flex-direction: column; gap: 16px; }
+    .ms-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 16px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+    }
+    .ms-item.done { border-color: var(--green); }
+    .ms-item.active { border-color: var(--amber); }
+    .ms-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .ms-num.done   { background: var(--green-dim); color: var(--green); border: 1px solid #00ff9d33; }
+    .ms-num.active { background: var(--amber-dim); color: var(--amber); border: 1px solid #ffb80033; }
+    .ms-num.todo   { background: var(--surface);   color: var(--txt-muted); border: 1px solid var(--border); }
+    .ms-body h4 { font-size: 0.88rem; font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .ms-body p  { font-size: 0.75rem; color: var(--txt-muted); line-height: 1.55; }
+
+    /* ── FOOTER ───────────────────────────────────────────────────── */
+    footer {
+      margin-top: 80px; padding: 32px 0;
+      border-top: 1px solid var(--border);
+      text-align: center; font-size: 0.78rem; color: var(--txt-muted);
+    }
+    footer span { color: var(--cyan); }
+
+    /* ── TOAST ────────────────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 999;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 20px;
+      font-size: 0.85rem; box-shadow: 0 8px 32px #00000088;
+      transform: translateY(80px); opacity: 0;
+      transition: all 0.35s cubic-bezier(.34,1.56,.64,1);
+      max-width: 320px;
+    }
+    #toast.show { transform: none; opacity: 1; }
+    #toast.success { border-color: var(--green); color: var(--green); }
+    #toast.error   { border-color: var(--red);   color: var(--red);   }
+    #toast.info    { border-color: var(--cyan);   color: var(--cyan);  }
+
+    /* ── SCROLLBAR ────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2a4060; }
+
+    /* ── RESPONSIVE ───────────────────────────────────────────────── */
+    @media(max-width: 768px) {
+      .grid2,.grid3,.grid4 { grid-template-columns: 1fr; }
+      .stats-bar { grid-template-columns: 1fr 1fr; }
+      nav .inner { flex-wrap: wrap; gap: 10px; }
+      .nav-links { flex-wrap: wrap; }
+    }
+
+    /* ── LOADING OVERLAY ──────────────────────────────────────────── */
+    #loading-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: var(--bg); display: flex;
+      flex-direction: column; align-items: center; justify-content: center;
+      transition: opacity 0.5s;
+    }
+    #loading-overlay.hide { opacity: 0; pointer-events: none; }
+    .loader-ring {
+      width: 56px; height: 56px; border-radius: 50%;
+      border: 3px solid var(--border);
+      border-top-color: var(--cyan);
+      animation: spin 0.9s linear infinite;
+      margin-bottom: 18px;
+    }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .loader-txt {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      color: var(--txt-muted); animation: blink 1.4s infinite;
+    }
+
+    /* ── GLOW BORDER ON ACTIVE CARD ───────────────────────────────── */
+    .card.glow-green { border-color: var(--green); box-shadow: var(--glow-green); }
+    .card.glow-red   { border-color: var(--red);   box-shadow: var(--glow-red);   }
+    .card.glow-cyan  { border-color: var(--cyan);  box-shadow: var(--glow-cyan);  }
+  </style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="loading-overlay">
+  <div class="loader-ring"></div>
+  <p class="loader-txt">Initializing KYC-Shield v2.4.1...</p>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="wrap inner">
+    <div class="logo">KYC<span>·</span>Shield</div>
+    <div class="nav-links">
+      <button class="active" onclick="switchTab('dashboard')">Dashboard</button>
+      <button onclick="switchTab('verify')">Verify Identity</button>
+      <button onclick="switchTab('monitor')">Fraud Monitor</button>
+      <button onclick="switchTab('modules')">Architecture</button>
+    </div>
+    <div class="nav-badge">● SYSTEM ONLINE</div>
+  </div>
+</nav>
+
+<!-- ═══════════════ DASHBOARD TAB ════════════════════════════════════ -->
+<div id="tab-dashboard" class="tab-content active">
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">
+      <span class="dot"></span>
+      AI-Powered KYC &amp; AML Compliance Platform
+    </div>
+    <h1>Identity Verification<br/><span>Powered by AI &amp; Graph Neural Networks</span></h1>
+    <p>Advanced fraud detection for BFSI sector — combining GNN, NLP, and Computer Vision to verify AADHAR, PAN, and identity documents in real-time.</p>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="switchTab('verify')">▶ Start Verification</button>
+      <button class="btn-outline" onclick="switchTab('monitor')">View Live Monitor</button>
+    </div>
+  </div>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <span class="val" id="stat-verified">0</span>
+      <div class="lbl">Documents Verified Today</div>
+    </div>
+    <div class="stat-item">
+      <span class="val" id="stat-accuracy">0%</span>
+      <div class="lbl">Detection Accuracy</div>
+    </div>
+    <div class="stat-item">
+      <span class="val" id="stat-flagged">0</span>
+      <div class="lbl">Fraud Alerts Raised</div>
+    </div>
+    <div class="stat-item">
+      <span class="val" id="stat-time">0ms</span>
+      <div class="lbl">Avg. Verification Time</div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD GRID -->
+  <div class="grid2 mb24">
+
+    <!-- RECENT VERIFICATIONS -->
+    <div class="card">
+      <div class="card-hdr">
+        <h3>🗂 Recent Verifications</h3>
+        <span class="pill pill-green">● Live</span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>TXN ID</th><th>Document</th><th>Risk</th><th>Status</th>
+          </tr></thead>
+          <tbody id="recent-verifications"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FRAUD TREND CHART -->
+    <div class="card">
+      <div class="card-hdr">
+        <h3>📊 Fraud Detection Trend (7d)</h3>
+        <span class="pill pill-cyan">Weekly</span>
+      </div>
+      <div class="bar-chart" id="bar-chart"></div>
+      <div style="margin-top:12px; display:flex; gap:16px;">
+        <span style="font-size:0.73rem;color:var(--txt-muted);">● <span style="color:var(--cyan)">Verified</span></span>
+        <span style="font-size:0.73rem;color:var(--txt-muted);">● <span style="color:var(--red)">Flagged</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- METRIC CARDS -->
+  <div class="grid4 mb24">
+    <div class="metric-card">
+      <div class="m-lbl">GNN Model Accuracy</div>
+      <div class="m-val">97.4<span style="font-size:1rem">%</span></div>
+      <div class="m-sub" style="color:var(--green)">▲ +1.2% this week</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-lbl">NLP Document Score</div>
+      <div class="m-val">94.8<span style="font-size:1rem">%</span></div>
+      <div class="m-sub" style="color:var(--green)">▲ +0.6% this week</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-lbl">False Positive Rate</div>
+      <div class="m-val">1.9<span style="font-size:1rem">%</span></div>
+      <div class="m-sub" style="color:var(--red)">▼ -0.3% this week</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-lbl">AML Cases Prevented</div>
+      <div class="m-val">312</div>
+      <div class="m-sub" style="color:var(--amber)">● This Quarter</div>
+    </div>
+  </div>
+
+  <!-- LIVE ALERT FEED -->
+  <div class="card mb24">
+    <div class="card-hdr">
+      <h3>🔔 Live Fraud Alert Feed</h3>
+      <div class="flex gap8">
+        <span class="pill pill-red">● Critical: <span id="crit-count">0</span></span>
+        <button class="btn-outline" style="font-size:0.75rem;padding:5px 14px;" onclick="clearAlerts()">Clear</button>
+      </div>
+    </div>
+    <div class="alert-feed" id="alert-feed">
+      <p style="font-size:0.8rem;color:var(--txt-muted);padding:20px 0;text-align:center;">No alerts yet. System monitoring...</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ VERIFY TAB ════════════════════════════════════════ -->
+<div id="tab-verify" class="tab-content">
+<div class="wrap" style="padding-top:40px;">
+  <div class="sec-hdr">
+    <h2><span class="icon">🛡</span> Identity Verification Portal</h2>
+    <p>Submit KYC documents for AI-powered verification using GNN, NLP &amp; Computer Vision models</p>
+  </div>
+
+  <div class="grid2">
+    <!-- LEFT: FORM -->
+    <div>
+      <div class="card mb16">
+        <div class="card-hdr">
+          <h3>👤 Customer Details</h3>
+          <span class="pill pill-cyan">Step 1</span>
+        </div>
+        <div class="form-group" id="fg-name">
+          <label>FULL NAME *</label>
+          <input type="text" id="inp-name" placeholder="As on identity document"/>
+          <div class="err">Please enter the full name</div>
+        </div>
+        <div class="grid2">
+          <div class="form-group" id="fg-dob">
+            <label>DATE OF BIRTH *</label>
+            <input type="date" id="inp-dob"/>
+            <div class="err">DOB is required</div>
+          </div>
+          <div class="form-group" id="fg-gender">
+            <label>GENDER *</label>
+            <select id="inp-gender">
+              <option value="">Select</option>
+              <option>Male</option><option>Female</option><option>Other</option>
+            </select>
+            <div class="err">Please select gender</div>
+          </div>
+        </div>
+        <div class="form-group" id="fg-phone">
+          <label>MOBILE NUMBER *</label>
+          <input type="text" id="inp-phone" placeholder="10-digit mobile number" maxlength="10"/>
+          <div class="err">Enter a valid 10-digit mobile number</div>
+        </div>
+        <div class="form-group" id="fg-email">
+          <label>EMAIL ADDRESS *</label>
+          <input type="email" id="inp-email" placeholder="customer@email.com"/>
+          <div class="err">Enter a valid email address</div>
+        </div>
+      </div>
+
+      <div class="card mb16">
+        <div class="card-hdr">
+          <h3>📋 Document Information</h3>
+          <span class="pill pill-cyan">Step 2</span>
+        </div>
+        <div class="form-group" id="fg-doctype">
+          <label>DOCUMENT TYPE *</label>
+          <select id="inp-doctype">
+            <option value="">Select document</option>
+            <option value="aadhaar">AADHAR Card</option>
+            <option value="pan">PAN Card</option>
+            <option value="passport">Passport</option>
+            <option value="voterid">Voter ID</option>
+            <option value="dl">Driving Licence</option>
+          </select>
+          <div class="err">Please select a document type</div>
+        </div>
+        <div class="form-group" id="fg-docnum">
+          <label>DOCUMENT NUMBER *</label>
+          <input type="text" id="inp-docnum" placeholder="Enter document ID number"/>
+          <div class="err">Document number is required</div>
+        </div>
+        <div class="form-group">
+          <label>ADDRESS</label>
+          <input type="text" id="inp-addr" placeholder="Full registered address"/>
+        </div>
+        <div class="form-group" id="fg-state">
+          <label>STATE *</label>
+          <select id="inp-state">
+            <option value="">Select state</option>
+            <option>Andhra Pradesh</option><option>Delhi</option><option>Gujarat</option>
+            <option>Karnataka</option><option>Kerala</option><option>Maharashtra</option>
+            <option>Rajasthan</option><option>Tamil Nadu</option><option>Telangana</option>
+            <option>Uttar Pradesh</option><option>West Bengal</option>
+          </select>
+          <div class="err">Please select a state</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hdr">
+          <h3>📁 Document Upload</h3>
+          <span class="pill pill-cyan">Step 3</span>
+        </div>
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-inp').click()">
+          <span class="icon" id="upload-icon">📄</span>
+          <h4 id="upload-title">Click or drag to upload document</h4>
+          <p id="upload-sub">Supported: JPG, PNG, PDF — Max 10MB</p>
+          <input type="file" id="file-inp" accept=".jpg,.jpeg,.png,.pdf" onchange="handleFileUpload(event)"/>
+        </div>
+        <div style="margin-top:20px;">
+          <button class="btn-full" id="verify-btn" onclick="startVerification()">🔍 Run AI Verification</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: PIPELINE + RESULT -->
+    <div>
+      <!-- AI PIPELINE -->
+      <div class="card mb16">
+        <div class="card-hdr">
+          <h3>🤖 AI Processing Pipeline</h3>
+          <span id="pipeline-status" class="pill pill-amber hidden">Running...</span>
+        </div>
+        <div class="pipeline">
+          <div class="pipe-step" id="ps-0">
+            <div class="pipe-icon">1</div>
+            <div class="pipe-body">
+              <h4>Document Pre-processing</h4>
+              <p>Noise reduction, skew correction &amp; OCR extraction</p>
+              <div class="prog"><div class="prog-bar" id="pb-0"></div></div>
+            </div>
+          </div>
+          <div class="pipe-step" id="ps-1">
+            <div class="pipe-icon">2</div>
+            <div class="pipe-body">
+              <h4>Computer Vision Analysis</h4>
+              <p>Tamper detection &amp; document authenticity check</p>
+              <div class="prog"><div class="prog-bar" id="pb-1"></div></div>
+            </div>
+          </div>
+          <div class="pipe-step" id="ps-2">
+            <div class="pipe-icon">3</div>
+            <div class="pipe-body">
+              <h4>NLP Entity Extraction</h4>
+              <p>Azure OpenAI — name, DOB &amp; address parsing</p>
+              <div class="prog"><div class="prog-bar" id="pb-2"></div></div>
+            </div>
+          </div>
+          <div class="pipe-step" id="ps-3">
+            <div class="pipe-icon">4</div>
+            <div class="pipe-body">
+              <h4>GNN Relationship Mapping</h4>
+              <p>Graph anomaly detection &amp; network analysis</p>
+              <div class="prog"><div class="prog-bar" id="pb-3"></div></div>
+            </div>
+          </div>
+          <div class="pipe-step" id="ps-4">
+            <div class="pipe-icon">5</div>
+            <div class="pipe-body">
+              <h4>AML Compliance Check</h4>
+              <p>Regulatory cross-check &amp; watchlist screening</p>
+              <div class="prog"><div class="prog-bar" id="pb-4"></div></div>
+            </div>
+          </div>
+          <div class="pipe-step" id="ps-5">
+            <div class="pipe-icon">6</div>
+            <div class="pipe-body">
+              <h4>Risk Score Generation</h4>
+              <p>Final verdict &amp; confidence score calculation</p>
+              <div class="prog"><div class="prog-bar" id="pb-5"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULT (hidden initially) -->
+      <div id="result-section" class="hidden">
+        <div id="result-hero-card" class="card mb16">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div class="card mb16">
+          <div class="card-hdr">
+            <h3>🎯 Risk Score Breakdown</h3>
+          </div>
+          <div class="risk-meter">
+            <div class="risk-circle">
+              <svg viewBox="0 0 160 160" width="160" height="160">
+                <circle cx="80" cy="80" r="68" fill="none" stroke="#1a2d48" stroke-width="12"/>
+                <circle id="risk-arc" cx="80" cy="80" r="68" fill="none" stroke="#00d4ff"
+                  stroke-width="12" stroke-linecap="round"
+                  stroke-dasharray="427" stroke-dashoffset="427"
+                  style="transition:stroke-dashoffset 1.2s ease"/>
+              </svg>
+              <div class="score-txt">
+                <span class="num" id="risk-score-num">-</span>
+                <span class="lbl">RISK SCORE</span>
+              </div>
+            </div>
+          </div>
+          <div class="risk-factors">
+            <div class="risk-row">
+              <span>Document Integrity</span>
+              <div class="risk-bar"><div class="fill" id="rf-0" style="width:0%;background:var(--green)"></div></div>
+              <span class="pct" id="rp-0">-</span>
+            </div>
+            <div class="risk-row">
+              <span>Address Match</span>
+              <div class="risk-bar"><div class="fill" id="rf-1" style="width:0%;background:var(--cyan)"></div></div>
+              <span class="pct" id="rp-1">-</span>
+            </div>
+            <div class="risk-row">
+              <span>Biometric Score</span>
+              <div class="risk-bar"><div class="fill" id="rf-2" style="width:0%;background:var(--purple)"></div></div>
+              <span class="pct" id="rp-2">-</span>
+            </div>
+            <div class="risk-row">
+              <span>Network Anomaly</span>
+              <div class="risk-bar"><div class="fill" id="rf-3" style="width:0%;background:var(--amber)"></div></div>
+              <span class="pct" id="rp-3">-</span>
+            </div>
+            <div class="risk-row">
+              <span>AML Watchlist</span>
+              <div class="risk-bar"><div class="fill" id="rf-4" style="width:0%;background:var(--red)"></div></div>
+              <span class="pct" id="rp-4">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ MONITOR TAB ══════════════════════════════════════ -->
+<div id="tab-monitor" class="tab-content">
+<div class="wrap" style="padding-top:40px;">
+  <div class="sec-hdr">
+    <h2><span class="icon">👁</span> Real-Time Fraud Monitor</h2>
+    <p>Live transaction monitoring with AI-powered anomaly detection and AML alerts</p>
+  </div>
+
+  <div class="grid4 mb24">
+    <div class="metric-card">
+      <div class="m-lbl">Transactions / min</div>
+      <div class="m-val" id="mon-tpm">142</div>
+      <div class="m-sub" style="color:var(--green)">● Normal load</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-lbl">Blocked Today</div>
+      <div class="m-val" id="mon-blocked">0</div>
+      <div class="m-sub" style="color:var(--red)">▲ High-risk blocked</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-lbl">Under Review</div>
+      <div class="m-val" id="mon-review">7</div>
+      <div class="m-sub" style="color:var(--amber)">● Pending review</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-lbl">Model Confidence</div>
+      <div class="m-val">98.2%</div>
+      <div class="m-sub" style="color:var(--cyan)">● GNN + NLP ensemble</div>
+    </div>
+  </div>
+
+  <div class="grid2 mb24">
+    <div class="card">
+      <div class="card-hdr">
+        <h3>🔴 Live Transactions</h3>
+        <div class="flex gap8">
+          <button class="btn-outline" style="font-size:0.73rem;padding:5px 14px;" onclick="toggleStream()" id="stream-btn">⏸ Pause</button>
+          <span class="pill pill-green">● Streaming</span>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>ID</th><th>Amount</th><th>Type</th><th>Risk</th><th>Action</th>
+          </tr></thead>
+          <tbody id="live-txn-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr">
+        <h3>🔔 Alert Console</h3>
+        <span class="pill pill-red">● <span id="live-alert-count">0</span> alerts</span>
+      </div>
+      <div class="alert-feed" id="live-alert-feed">
+        <p style="font-size:0.8rem;color:var(--txt-muted);text-align:center;padding:20px 0">Monitoring active... alerts will appear here.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIMULATE FRAUD BUTTON -->
+  <div class="card" style="text-align:center;padding:32px;">
+    <p style="color:var(--txt-muted);font-size:0.85rem;margin-bottom:16px;">Simulate a suspicious transaction to test the fraud detection pipeline</p>
+    <div class="flex gap12" style="justify-content:center;flex-wrap:wrap;">
+      <button class="btn-primary" onclick="simulateFraud('high')">🚨 Simulate High-Risk Transaction</button>
+      <button class="btn-outline" onclick="simulateFraud('med')">⚠️ Simulate Medium-Risk</button>
+      <button class="btn-outline" onclick="simulateFraud('low')">✅ Simulate Safe Transaction</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ MODULES TAB ═══════════════════════════════════════ -->
+<div id="tab-modules" class="tab-content">
+<div class="wrap" style="padding-top:40px;">
+  <div class="sec-hdr">
+    <h2><span class="icon">🏗</span> System Architecture &amp; Modules</h2>
+    <p>End-to-end AI pipeline for KYC compliance — BFSI grade, production-ready</p>
+  </div>
+
+  <div class="grid2 mb24">
+    <div class="mod-card">
+      <div class="mod-num">MODULE 01 ──────────</div>
+      <h3>Data Collection &amp; Preprocessing</h3>
+      <p>Gather, standardize, and preprocess KYC identity documents including AADHAR cards, utility bills, and structured address data for model ingestion.</p>
+      <ul class="mod-tasks">
+        <li>Collect AADHAR, PAN, utility bill documents</li>
+        <li>Standardize document formats &amp; resolutions</li>
+        <li>Extract and normalize address fields from AADHAR</li>
+        <li>Label datasets for supervised model training</li>
+      </ul>
+    </div>
+    <div class="mod-card">
+      <div class="mod-num">MODULE 02 ──────────</div>
+      <h3>AI Model Development</h3>
+      <p>Build and fine-tune multi-modal AI models — GNN for relationship graphs, NLP via Azure OpenAI for document parsing, and CV for tamper detection.</p>
+      <ul class="mod-tasks">
+        <li>Fine-tune Azure OpenAI NLP for document analysis</li>
+        <li>Build Graph Neural Network for anomaly detection</li>
+        <li>Computer Vision model for forgery identification</li>
+        <li>Train &amp; validate on labeled KYC datasets</li>
+      </ul>
+    </div>
+    <div class="mod-card">
+      <div class="mod-num">MODULE 03 ──────────</div>
+      <h3>AML &amp; KYC System Integration</h3>
+      <p>Integrate trained AI models into live onboarding workflows with real-time fraud alert pipelines compliant with regulatory AML/KYC frameworks.</p>
+      <ul class="mod-tasks">
+        <li>Integrate AI into live onboarding systems</li>
+        <li>Build real-time fraud alert &amp; decision pipeline</li>
+        <li>Watchlist screening &amp; regulatory compliance</li>
+        <li>REST API endpoints for banking system hooks</li>
+      </ul>
+    </div>
+    <div class="mod-card">
+      <div class="mod-num">MODULE 04 ──────────</div>
+      <h3>Deployment &amp; Validation</h3>
+      <p>Deploy end-to-end system to secure cloud environment and validate against real AADHAR data with performance benchmarking and compliance audits.</p>
+      <ul class="mod-tasks">
+        <li>Deploy to Azure secure sandbox environment</li>
+        <li>Run verification on AADHAR-based datasets</li>
+        <li>Validate compliance, accuracy &amp; fraud detection rate</li>
+        <li>Performance monitoring &amp; feedback loop</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MILESTONE TRACKER -->
+  <div class="sec-hdr">
+    <h2><span class="icon">📍</span> Project Milestones</h2>
+    <p>Track progress across all evaluation criteria</p>
+  </div>
+  <div class="milestone-track mb24">
+    <div class="ms-item done">
+      <div class="ms-num done">✓</div>
+      <div class="ms-body">
+        <h4>Milestone 1 — Data Preparation</h4>
+        <p>Identity data collected and cleaned. Address details extracted and prepared for model input from AADHAR card dataset. OCR pipeline established for document reading.</p>
+      </div>
+      <span class="pill pill-green" style="flex-shrink:0">Complete</span>
+    </div>
+    <div class="ms-item done">
+      <div class="ms-num done">✓</div>
+      <div class="ms-body">
+        <h4>Milestone 2 — Model Development</h4>
+        <p>AI models (GNN + NLP + CV) developed and evaluated. Identity verification accuracy at 97.4%, address fraud detection at 94.8%. Models validated on held-out test sets.</p>
+      </div>
+      <span class="pill pill-green" style="flex-shrink:0">Complete</span>
+    </div>
+    <div class="ms-item active">
+      <div class="ms-num active">3</div>
+      <div class="ms-body">
+        <h4>Milestone 3 — AML/KYC Integration</h4>
+        <p>Models integrating into AML/KYC onboarding systems. Real-time fraud detection pipeline functional. Compliance validation in progress against RBI and IRDAI frameworks.</p>
+      </div>
+      <span class="pill pill-amber" style="flex-shrink:0">In Progress</span>
+    </div>
+    <div class="ms-item">
+      <div class="ms-num todo">4</div>
+      <div class="ms-body">
+        <h4>Milestone 4 — Production Deployment</h4>
+        <p>Full system deployment on secure Azure environment. End-to-end AADHAR data verification, compliance audits, and performance benchmarking against production SLAs.</p>
+      </div>
+      <span class="pill pill-purple" style="flex-shrink:0">Planned</span>
+    </div>
+  </div>
+
+  <!-- TECH STACK -->
+  <div class="card">
+    <div class="card-hdr">
+      <h3>⚙️ Technology Stack</h3>
+      <span class="pill pill-cyan">BFSI Grade</span>
+    </div>
+    <div class="grid3" style="gap:12px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;">
+        <div style="font-size:0.68rem;color:var(--cyan);font-family:var(--font-mono);margin-bottom:8px;">AI / ML</div>
+        <div style="font-size:0.82rem;color:var(--txt);line-height:1.8;">
+          Azure OpenAI (GPT-4)<br/>Graph Neural Networks<br/>PyTorch Geometric<br/>Tesseract OCR<br/>OpenCV
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;">
+        <div style="font-size:0.68rem;color:var(--purple);font-family:var(--font-mono);margin-bottom:8px;">BACKEND</div>
+        <div style="font-size:0.82rem;color:var(--txt);line-height:1.8;">
+          Python 3.11+<br/>FastAPI / Django<br/>PostgreSQL<br/>Redis (cache)<br/>Apache Kafka
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;">
+        <div style="font-size:0.68rem;color:var(--green);font-family:var(--font-mono);margin-bottom:8px;">INFRASTRUCTURE</div>
+        <div style="font-size:0.82rem;color:var(--txt);line-height:1.8;">
+          Microsoft Azure<br/>Docker / Kubernetes<br/>Azure DevOps CI/CD<br/>Grafana Monitoring<br/>JWT Authentication
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <p>KYC<span>·</span>Shield &nbsp;|&nbsp; AI-Powered Identity Verification &amp; Fraud Detection &nbsp;|&nbsp; Built for BFSI KYC/AML Compliance</p>
+    <p style="margin-top:6px;">Graph Neural Networks · NLP · Computer Vision · Azure OpenAI</p>
+  </div>
+</footer>
+
+<!-- ══════════════ JAVASCRIPT ══════════════════════════════════════════ -->
+<script>
+// ── GLOBALS ──────────────────────────────────────────────────────────
+let streamActive  = true;
+let streamTimer   = null;
+let alertCount    = 0;
+let blockedCount  = 0;
+let verifyCount   = 0;
+let critCount     = 0;
+let fileUploaded  = false;
+
+const txnTypes = ['Transfer','Deposit','Withdrawal','Payment','Remittance','Investment'];
+const alertMessages = {
+  high: [
+    ['Duplicate AADHAR Detected', 'Same document used across 3 accounts within 6 hours'],
+    ['Address Mismatch - Fraud Pattern', 'NLP model flagged forged address on submitted document'],
+    ['GNN Anomaly: Ring Structure', 'Transaction network shows circular fund movement — AML risk'],
+    ['Watchlist Match', 'Entity matched OFAC/UN sanctions screening list'],
+    ['Rapid Account Opening', '5 KYC submissions from same device in 30 minutes'],
+  ],
+  med: [
+    ['Inconsistent Data Fields', 'DOB on document does not match declared date'],
+    ['Unusual Transaction Pattern', 'High-frequency small transfers from new account'],
+    ['OCR Confidence Low', 'Document image quality below acceptable threshold (62%)'],
+    ['Address Not Verifiable', 'Submitted address not found in postal database'],
+  ],
+  low: [
+    ['Verification Successful', 'All AI checks passed — customer cleared for onboarding'],
+    ['Document Authenticated', 'Computer Vision confirms document integrity at 98.3%'],
+    ['AML Screening Passed', 'No watchlist matches found — cleared for transaction'],
+  ]
+};
+
+// ── LOADING ────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('loading-overlay').classList.add('hide');
+    initDashboard();
+  }, 1400);
+});
+
+// ── TAB SWITCHING ──────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const idx = ['dashboard','verify','monitor','modules'].indexOf(name);
+  document.querySelectorAll('.nav-links button')[idx].classList.add('active');
+  if (name === 'monitor' && !streamTimer) startLiveStream();
+}
+
+// ── DASHBOARD INIT ─────────────────────────────────────────────────
+function initDashboard() {
+  animateCount('stat-verified', 1248);
+  animateCount('stat-accuracy', 97, '%');
+  animateCount('stat-flagged', 38);
+  animateCount('stat-time', 340, 'ms');
+  renderBarChart();
+  renderRecentVerifications();
+  setTimeout(()=> pushAlert('med', 'Inconsistent Data Fields', 'DOB mismatch detected on AADHAR card submission'), 1800);
+  setTimeout(()=> pushAlert('high','GNN Anomaly Detected','Circular transaction pattern detected in graph network'), 3200);
+  setTimeout(()=> pushAlert('low','Identity Verified Successfully','Customer Rahul K. cleared — risk score 12/100'), 4600);
+}
+
+function animateCount(id, target, suffix = '') {
+  let current = 0;
+  const el = document.getElementById(id);
+  const step = Math.ceil(target / 60);
+  const timer = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = current.toLocaleString() + suffix;
+    if (current >= target) clearInterval(timer);
+  }, 20);
+}
+
+function renderBarChart() {
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const verified = [340,290,410,360,480,220,390];
+  const flagged  = [18,12,27,14,33,9,22];
+  const max = Math.max(...verified);
+  const container = document.getElementById('bar-chart');
+  container.innerHTML = '';
+  days.forEach((d,i) => {
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    const h1 = Math.round((verified[i]/max)*100);
+    const h2 = Math.round((flagged[i]/max)*100);
+    col.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;flex:1;justify-content:flex-end;">
+        <div class="bar" style="height:0px;background:var(--red);width:70%;transition:height 1s ${i*0.08}s ease" data-h="${h2*0.6}px"></div>
+        <div class="bar" style="height:0px;background:var(--cyan);width:100%;transition:height 1s ${i*0.08}s ease" data-h="${h1*0.7}px"></div>
+      </div>
+      <span class="bar-lbl">${d}</span>`;
+    container.appendChild(col);
+  });
+  setTimeout(()=>{
+    container.querySelectorAll('.bar').forEach(b => {
+      b.style.height = b.dataset.h;
+    });
+  }, 200);
+}
+
+function renderRecentVerifications() {
+  const tbody = document.getElementById('recent-verifications');
+  const data = [
+    ['TXN#8812','AADHAR','low','Approved'],
+    ['TXN#8809','PAN Card','med','Review'],
+    ['TXN#8803','Passport','high','Blocked'],
+    ['TXN#8798','AADHAR','low','Approved'],
+    ['TXN#8791','Voter ID','med','Review'],
+  ];
+  tbody.innerHTML = data.map(([id,doc,risk,status]) => {
+    const pClass = risk==='low'?'pill-green':risk==='med'?'pill-amber':'pill-red';
+    const sClass = status==='Approved'?'pill-green':status==='Review'?'pill-amber':'pill-red';
+    return `<tr>
+      <td class="txn-id">${id}</td>
+      <td>${doc}</td>
+      <td><span class="pill ${pClass}">${risk.toUpperCase()}</span></td>
+      <td><span class="pill ${sClass}">${status}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── ALERT SYSTEM ───────────────────────────────────────────────────
+function pushAlert(sev, title, desc, targetId = 'alert-feed') {
+  const feed = document.getElementById(targetId);
+  const empty = feed.querySelector('p');
+  if (empty) empty.remove();
+
+  const now = new Date();
+  const t = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const icon = sev==='high'?'🔴':sev==='med'?'🟡':'🟢';
+  const cls  = sev==='high'?'sev-high':sev==='med'?'sev-med':'sev-low';
+
+  const item = document.createElement('div');
+  item.className = `alert-item ${cls}`;
+  item.innerHTML = `
+    <span class="aico">${icon}</span>
+    <div class="abody">
+      <h4>${title}</h4>
+      <p>${desc}</p>
+    </div>
+    <span class="atime">${t}</span>`;
+  feed.prepend(item);
+
+  if (sev === 'high') {
+    critCount++;
+    document.getElementById('crit-count').textContent = critCount;
+  }
+  alertCount++;
+  const countEl = document.getElementById('live-alert-count');
+  if (countEl) countEl.textContent = alertCount;
+}
+
+function clearAlerts() {
+  document.getElementById('alert-feed').innerHTML = '<p style="font-size:0.8rem;color:var(--txt-muted);padding:20px 0;text-align:center;">No alerts. System monitoring...</p>';
+  critCount = 0;
+  document.getElementById('crit-count').textContent = '0';
+}
+
+// ── FILE UPLOAD ────────────────────────────────────────────────────
+function handleFileUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const zone = document.getElementById('upload-zone');
+  zone.querySelector('#upload-icon').textContent = '✅';
+  zone.querySelector('#upload-title').textContent = file.name;
+  zone.querySelector('#upload-sub').textContent = (file.size/1024).toFixed(1) + ' KB — Ready for analysis';
+  zone.style.borderColor = 'var(--green)';
+  zone.style.background = 'var(--green-dim)';
+  fileUploaded = true;
+  showToast('📁 Document loaded — ready to verify', 'success');
+}
+
+const uploadZone = document.getElementById('upload-zone');
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFileUpload({ target: { files: [file] } });
+});
+
+// ── FORM VALIDATION ────────────────────────────────────────────────
+function validateField(id, condition) {
+  const fg = document.getElementById('fg-' + id);
+  if (!fg) return condition;
+  if (!condition) { fg.classList.add('has-error'); return false; }
+  fg.classList.remove('has-error'); return true;
+}
+function validatePhone(v) { return /^\d{10}$/.test(v); }
+function validateEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+function runValidation() {
+  const name    = document.getElementById('inp-name').value.trim();
+  const dob     = document.getElementById('inp-dob').value;
+  const gender  = document.getElementById('inp-gender').value;
+  const phone   = document.getElementById('inp-phone').value.trim();
+  const email   = document.getElementById('inp-email').value.trim();
+  const doctype = document.getElementById('inp-doctype').value;
+  const docnum  = document.getElementById('inp-docnum').value.trim();
+  const state   = document.getElementById('inp-state').value;
+
+  let ok = true;
+  ok = validateField('name',    name.length >= 3)    && ok;
+  ok = validateField('dob',     !!dob)               && ok;
+  ok = validateField('gender',  !!gender)             && ok;
+  ok = validateField('phone',   validatePhone(phone)) && ok;
+  ok = validateField('email',   validateEmail(email)) && ok;
+  ok = validateField('doctype', !!doctype)            && ok;
+  ok = validateField('docnum',  docnum.length >= 4)   && ok;
+  ok = validateField('state',   !!state)              && ok;
+  return ok;
+}
+
+// ── VERIFICATION PIPELINE ──────────────────────────────────────────
+function startVerification() {
+  if (!runValidation()) {
+    showToast('❌ Please fill all required fields correctly', 'error');
+    return;
+  }
+  if (!fileUploaded) {
+    showToast('📁 Please upload a document first', 'error');
+    return;
+  }
+
+  document.getElementById('verify-btn').disabled = true;
+  document.getElementById('pipeline-status').classList.remove('hidden');
+  document.getElementById('result-section').classList.add('hidden');
+
+  // Reset pipeline
+  for (let i = 0; i < 6; i++) {
+    document.getElementById(`ps-${i}`).className = 'pipe-step';
+    document.getElementById(`pb-${i}`).style.width = '0%';
+    document.getElementById(`ps-${i}`).querySelector('.pipe-icon').textContent = i+1;
+  }
+
+  const delays = [0, 1200, 2200, 3400, 4600, 5600];
+  const durations = [1000, 900, 1100, 1000, 900, 800];
+
+  delays.forEach((delay, i) => {
+    setTimeout(() => {
+      document.getElementById(`ps-${i}`).classList.add('active');
+      animateBar(`pb-${i}`, durations[i]);
+    }, delay);
+    setTimeout(() => {
+      document.getElementById(`ps-${i}`).classList.remove('active');
+      document.getElementById(`ps-${i}`).classList.add('done');
+      document.getElementById(`ps-${i}`).querySelector('.pipe-icon').textContent = '✓';
+    }, delay + durations[i] + 100);
+  });
+
+  // Show result
+  setTimeout(() => {
+    document.getElementById('pipeline-status').classList.add('hidden');
+    document.getElementById('verify-btn').disabled = false;
+    showResult();
+  }, 6700);
+}
+
+function animateBar(id, duration) {
+  const bar = document.getElementById(id);
+  const start = performance.now();
+  const tick = (now) => {
+    const progress = Math.min((now - start) / duration, 1);
+    bar.style.width = (progress * 100) + '%';
+    if (progress < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+function showResult() {
+  // Determine risk based on random (biased toward low)
+  const rand = Math.random();
+  let riskLevel, score, color, label, icon;
+
+  if (rand < 0.65) {
+    score = Math.floor(Math.random() * 25) + 5;
+    riskLevel = 'low'; color = 'var(--green)'; label = 'LOW RISK'; icon = '✅';
+  } else if (rand < 0.88) {
+    score = Math.floor(Math.random() * 30) + 40;
+    riskLevel = 'med'; color = 'var(--amber)'; label = 'MEDIUM RISK'; icon = '⚠️';
+  } else {
+    score = Math.floor(Math.random() * 25) + 72;
+    riskLevel = 'high'; color = 'var(--red)'; label = 'HIGH RISK — BLOCKED'; icon = '🚫';
+  }
+
+  // Result hero
+  const rh = document.getElementById('result-hero-card');
+  const verdict = riskLevel === 'low' ? 'Identity Verified' : riskLevel === 'med' ? 'Manual Review Required' : 'Verification Failed — Fraud Suspected';
+  const desc    = riskLevel === 'low' ? 'Customer is cleared for KYC onboarding. All AI checks passed successfully.' :
+                  riskLevel === 'med' ? 'Moderate anomalies detected. Flagged for compliance officer review.' :
+                  'High-risk indicators found. Document blocked. Alert raised to AML team.';
+  rh.className = `card mb16 ${riskLevel === 'low' ? 'glow-green' : riskLevel === 'high' ? 'glow-red' : 'glow-cyan'}`;
+  rh.innerHTML = `
+    <div style="text-align:center;padding:20px 0;">
+      <span style="font-size:2.6rem;display:block;margin-bottom:10px;">${icon}</span>
+      <h2 style="font-family:var(--font-head);font-size:1.3rem;color:#fff;margin-bottom:6px;">${verdict}</h2>
+      <p style="font-size:0.8rem;color:var(--txt-muted);margin-bottom:16px;">${desc}</p>
+      <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+        <span class="pill ${riskLevel==='low'?'pill-green':riskLevel==='med'?'pill-amber':'pill-red'}">Risk: ${label}</span>
+        <span class="pill pill-cyan">Score: ${score}/100</span>
+        <span class="pill pill-purple">TXN#${Math.floor(Math.random()*9000+1000)}</span>
+      </div>
+    </div>`;
+
+  // Risk arc
+  const circumference = 2 * Math.PI * 68;
+  const offset = circumference * (1 - score / 100);
+  const arc = document.getElementById('risk-arc');
+  arc.style.stroke = color;
+  document.getElementById('risk-score-num').textContent = score;
+  setTimeout(() => { arc.style.strokeDashoffset = offset; }, 100);
+
+  // Risk factors
+  const factors = [
+    Math.max(0, 100 - score + Math.random() * 15 - 5),
+    Math.max(0, 100 - score * 0.8 + Math.random() * 12),
+    Math.max(0, 95 - score + Math.random() * 10),
+    Math.min(100, score * 0.6 + Math.random() * 20),
+    Math.min(100, score * 0.5 + Math.random() * 15),
+  ];
+  const colors = ['var(--green)','var(--cyan)','var(--purple)','var(--amber)','var(--red)'];
+  factors.forEach((val, i) => {
+    const v = Math.min(100, Math.max(0, Math.round(val)));
+    document.getElementById(`rf-${i}`).style.width = v + '%';
+    document.getElementById(`rf-${i}`).style.background = colors[i];
+    document.getElementById(`rp-${i}`).textContent = v + '%';
+  });
+
+  document.getElementById('result-section').classList.remove('hidden');
+
+  verifyCount++;
+  document.getElementById('stat-verified').textContent = (1248 + verifyCount).toLocaleString();
+
+  if (riskLevel === 'high') {
+    blockedCount++;
+    document.getElementById('mon-blocked').textContent = blockedCount;
+    pushAlert('high', 'Verification Blocked', 'High-risk document flagged by AI pipeline', 'alert-feed');
+    pushAlert('high', 'AML Alert Raised', 'Suspicious document forwarded to compliance team', 'alert-feed');
+  } else if (riskLevel === 'med') {
+    pushAlert('med', 'Manual Review Requested', 'Medium-risk score — flagged for officer review', 'alert-feed');
+  } else {
+    pushAlert('low', 'Customer Verified', `Identity cleared — Risk score ${score}/100`, 'alert-feed');
+  }
+
+  showToast(riskLevel === 'low' ? '✅ Verification complete — Approved' : riskLevel === 'med' ? '⚠️ Flagged for review' : '🚫 High risk — Blocked', riskLevel === 'low' ? 'success' : 'error');
+}
+
+// ── LIVE STREAM ────────────────────────────────────────────────────
+const names = ['Priya S.','Rahul K.','Ananya M.','Vikram R.','Deepa N.','Amit T.','Kavitha P.','Suresh B.'];
+const types = ['Transfer','Deposit','Payment','Withdrawal','Remittance'];
+
+function startLiveStream() {
+  if (!streamActive) return;
+  pushLiveTxn();
+  streamTimer = setInterval(pushLiveTxn, 2200);
+}
+
+function pushLiveTxn() {
+  const tbody = document.getElementById('live-txn-table');
+  const rand  = Math.random();
+  const risk  = rand < 0.65 ? 'low' : rand < 0.88 ? 'med' : 'high';
+  const amt   = (Math.random() * 980000 + 1000).toFixed(0);
+  const type  = types[Math.floor(Math.random() * types.length)];
+  const id    = 'TXN#' + Math.floor(Math.random() * 90000 + 10000);
+  const pCls  = risk==='low'?'pill-green':risk==='med'?'pill-amber':'pill-red';
+  const action= risk==='high'?'<span style="color:var(--red);font-size:0.75rem;font-family:var(--font-mono);">BLOCK</span>':
+                risk==='med' ?'<span style="color:var(--amber);font-size:0.75rem;font-family:var(--font-mono);">REVIEW</span>':
+                              '<span style="color:var(--green);font-size:0.75rem;font-family:var(--font-mono);">PASS</span>';
+
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td class="txn-id">${id}</td>
+    <td>₹${Number(amt).toLocaleString('en-IN')}</td>
+    <td>${type}</td>
+    <td><span class="pill ${pCls}">${risk.toUpperCase()}</span></td>
+    <td>${action}</td>`;
+  tbody.prepend(row);
+  if (tbody.children.length > 8) tbody.removeChild(tbody.lastChild);
+
+  if (risk === 'high') {
+    const msgs = alertMessages.high;
+    const [title, desc] = msgs[Math.floor(Math.random()*msgs.length)];
+    pushAlert('high', title, desc, 'live-alert-feed');
+    blockedCount++;
+    document.getElementById('mon-blocked').textContent = blockedCount;
+  } else if (risk === 'med' && Math.random() > 0.55) {
+    const msgs = alertMessages.med;
+    const [title, desc] = msgs[Math.floor(Math.random()*msgs.length)];
+    pushAlert('med', title, desc, 'live-alert-feed');
+  }
+  document.getElementById('live-alert-count').textContent = alertCount;
+}
+
+function toggleStream() {
+  const btn = document.getElementById('stream-btn');
+  if (streamActive) {
+    clearInterval(streamTimer); streamTimer = null;
+    streamActive = false; btn.textContent = '▶ Resume';
+  } else {
+    streamActive = true; btn.textContent = '⏸ Pause';
+    startLiveStream();
+  }
+}
+
+// ── SIMULATE FRAUD ─────────────────────────────────────────────────
+function simulateFraud(level) {
+  const msgs = alertMessages[level];
+  const [title, desc] = msgs[Math.floor(Math.random()*msgs.length)];
+  pushAlert(level, title, desc, 'live-alert-feed');
+
+  const labels = { high: '🚨 High-Risk Transaction Simulated', med: '⚠️ Medium-Risk Transaction Simulated', low: '✅ Safe Transaction Simulated' };
+  const types  = { high: 'error', med: 'info', low: 'success' };
+  showToast(labels[level], types[level]);
+
+  if (level === 'high') { blockedCount++; document.getElementById('mon-blocked').textContent = blockedCount; }
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg, type = 'info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+}
+</script>
+</body>
+</html>
